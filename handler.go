@@ -16,13 +16,13 @@ const (
 	appendScript = `
       // hide download url
       document.querySelector(".download-url-wrapper").style.display = "none"
-      const timerId = setInterval(function () {
-        const a = document.querySelector("hgroup.main > a")
-        if (!!a) {
-          a.style.display = "none"
-          clearInterval(timerId)
-        }
-      }, 1)`
+      //const timerId = setInterval(function () {
+      //  const a = document.querySelector("hgroup.main > a")
+      //  if (!!a) {
+      //    a.style.display = "none"
+      //    clearInterval(timerId)
+      //  }
+      //}, 1)`
 )
 
 var (
@@ -44,7 +44,7 @@ func buildIndexHTML(pathPrefix string) ([]byte, error) {
 	return bytes.Replace(indexHTML, []byte(uiAssignment), []byte(uiAssignment+"\n"+appendScript), 1), nil
 }
 
-func New(schema []byte, pathPrefix string) (http.Handler, error) {
+func New(getSchema func() ([]byte, error), pathPrefix string) (http.Handler, error) {
 	indexHTML, err := buildIndexHTML(pathPrefix)
 	if err != nil {
 		return nil, fmt.Errorf("build index html: %w", err)
@@ -72,6 +72,11 @@ func New(schema []byte, pathPrefix string) (http.Handler, error) {
 		case "/", "/index.html":
 			w.Write(indexHTML)
 		case schemaPath:
+			schema, err := getSchema()
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
 			w.Write(schema)
 		default:
 			filesHandler.ServeHTTP(w, r)

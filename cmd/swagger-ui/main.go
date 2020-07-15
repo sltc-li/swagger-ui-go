@@ -36,12 +36,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	schema, err := readSchemaAsJSON(flag.Arg(0))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	handler, err := swagger_ui.New(schema, "")
+	handler, err := swagger_ui.New(func() ([]byte, error) {
+		return readSchemaAsJSON(flag.Arg(0))
+	}, "")
 	if err != nil {
 		log.Fatal(err)
 	}
