@@ -41,7 +41,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	handler, err := swagger_ui.New(schema)
+	handler, err := swagger_ui.New(schema, "")
 	if err != nil {
 		log.Fatal(err)
 	}
