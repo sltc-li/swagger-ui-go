@@ -1,7 +1,7 @@
 swagger-ui-go
 =============
 
-swagger-ui-go provide a Go http handler for hosting [Swagger UI](https://swagger.io/tools/swagger-ui/).
+swagger-ui-go provides a Go http handler for hosting [Swagger UI](https://swagger.io/tools/swagger-ui/).
 
 ### Usage
 
