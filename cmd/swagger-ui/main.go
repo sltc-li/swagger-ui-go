@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -51,5 +52,12 @@ func getHandler(path string, prefix string) (http.Handler, error) {
 		return swagger_ui.HandlerWithURL(path, prefix)
 	}
 
+	if strings.HasPrefix(path, "~") {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return nil, fmt.Errorf("unable to get user's home directory: %w", err)
+		}
+		path = filepath.Join(home, strings.TrimPrefix(path, "~"))
+	}
 	return swagger_ui.HandlerWithPath(path, prefix)
 }
