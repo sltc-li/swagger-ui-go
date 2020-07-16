@@ -46,7 +46,7 @@ func buildIndexHTML(schemaPath string) ([]byte, error) {
 	return bytes.Replace(indexHTML, []byte(uiAssignment), []byte(uiAssignment+"\n"+appendScript), 1), nil
 }
 
-func NewWithPath(schemaPath string, pathPrefix string) (http.Handler, error) {
+func HandlerWithPath(schemaPath string, pathPrefix string) (http.Handler, error) {
 	dir, base := filepath.Dir(schemaPath), filepath.Base(schemaPath)
 
 	indexHTML, err := buildIndexHTML(pathPrefix + "/" + base)
@@ -57,7 +57,7 @@ func NewWithPath(schemaPath string, pathPrefix string) (http.Handler, error) {
 	// Disable cache
 	fs := noCache(http.FileServer(http.Dir(dir)))
 
-	return newHandler(indexHTML, pathPrefix, func(path string) (http.Handler, bool) {
+	return handlerWithIndexHTML(indexHTML, pathPrefix, func(path string) (http.Handler, bool) {
 		if _, err := os.Stat(filepath.Join(dir, path)); err == nil {
 			return fs, true
 		}
@@ -66,18 +66,18 @@ func NewWithPath(schemaPath string, pathPrefix string) (http.Handler, error) {
 	}), nil
 }
 
-func NewWithURL(schemaURL string, pathPrefix string) (http.Handler, error) {
+func HandlerWithURL(schemaURL string, pathPrefix string) (http.Handler, error) {
 	indexHTML, err := buildIndexHTML(schemaURL)
 	if err != nil {
 		return nil, fmt.Errorf("build index html: %w", err)
 	}
 
-	return newHandler(indexHTML, pathPrefix, func(path string) (http.Handler, bool) {
+	return handlerWithIndexHTML(indexHTML, pathPrefix, func(path string) (http.Handler, bool) {
 		return nil, false
 	}), nil
 }
 
-func newHandler(indexHTML []byte, pathPrefix string, getHandler func(path string) (http.Handler, bool)) http.Handler {
+func handlerWithIndexHTML(indexHTML []byte, pathPrefix string, getHandler func(path string) (http.Handler, bool)) http.Handler {
 	filesHandler := swaggerFiles.Handler
 	filesHandler.Prefix = pathPrefix
 

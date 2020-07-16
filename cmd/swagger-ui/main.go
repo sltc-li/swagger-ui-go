@@ -48,8 +48,8 @@ func main() {
 
 func getHandler(path string, prefix string) (http.Handler, error) {
 	if strings.HasPrefix(path, "http://") || strings.HasPrefix(path, "https://") {
-		return swagger_ui.NewWithURL(path, prefix)
+		return swagger_ui.HandlerWithURL(path, prefix)
 	}
 
-	return swagger_ui.NewWithPath(path, prefix)
+	return swagger_ui.HandlerWithPath(path, prefix)
 }
