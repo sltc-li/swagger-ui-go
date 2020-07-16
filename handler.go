@@ -102,6 +102,7 @@ func newHandler(indexHTML []byte, pathPrefix string, getHandler func(path string
 		}
 
 		if handler, ok := getHandler(path); ok {
+			r.URL.Path = path
 			handler.ServeHTTP(w, r)
 			return
 		}

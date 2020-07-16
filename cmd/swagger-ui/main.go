@@ -31,14 +31,17 @@ func main() {
 		os.Exit(1)
 	}
 
-	handler, err := getHandler(flag.Arg(0), "")
+	handler, err := getHandler(flag.Arg(0), "/swagger-ui")
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	mux := http.NewServeMux()
+	mux.Handle("/swagger-ui/", handler)
+
 	log.Printf("listening :%d", *port)
-	log.Printf("open http://localhost:%d/ in browser", *port)
-	if err := http.ListenAndServe(":"+strconv.Itoa(*port), handler); err != nil {
+	log.Printf("open http://localhost:%d/swagger-ui/ in browser", *port)
+	if err := http.ListenAndServe(":"+strconv.Itoa(*port), mux); err != nil {
 		log.Fatal(err)
 	}
 }
