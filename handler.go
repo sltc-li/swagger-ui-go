@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"strings"
 	"time"
 
 	swaggerFiles "github.com/swaggo/files"
@@ -46,10 +45,10 @@ func buildIndexHTML(schemaPath string) ([]byte, error) {
 	return bytes.Replace(indexHTML, []byte(uiAssignment), []byte(uiAssignment+"\n"+appendScript), 1), nil
 }
 
-func HandlerWithPath(schemaPath string, pathPrefix string) (http.Handler, error) {
+func HandlerWithPath(schemaPath string, prefix string) (http.Handler, error) {
 	dir, base := filepath.Dir(schemaPath), filepath.Base(schemaPath)
 
-	indexHTML, err := buildIndexHTML(pathPrefix + "/" + base)
+	indexHTML, err := buildIndexHTML(prefix + "/" + base)
 	if err != nil {
 		return nil, fmt.Errorf("build index html: %w", err)
 	}
@@ -57,7 +56,7 @@ func HandlerWithPath(schemaPath string, pathPrefix string) (http.Handler, error)
 	// Disable cache
 	fs := noCache(http.FileServer(http.Dir(dir)))
 
-	return handlerWithIndexHTML(indexHTML, pathPrefix, func(path string) (http.Handler, bool) {
+	return handlerWithIndexHTML(indexHTML, prefix, func(path string) (http.Handler, bool) {
 		if _, err := os.Stat(filepath.Join(dir, path)); err == nil {
 			return fs, true
 		}
@@ -66,35 +65,25 @@ func HandlerWithPath(schemaPath string, pathPrefix string) (http.Handler, error)
 	}), nil
 }
 
-func HandlerWithURL(schemaURL string, pathPrefix string) (http.Handler, error) {
+func HandlerWithURL(schemaURL string, prefix string) (http.Handler, error) {
 	indexHTML, err := buildIndexHTML(schemaURL)
 	if err != nil {
 		return nil, fmt.Errorf("build index html: %w", err)
 	}
 
-	return handlerWithIndexHTML(indexHTML, pathPrefix, func(path string) (http.Handler, bool) {
+	return handlerWithIndexHTML(indexHTML, prefix, func(path string) (http.Handler, bool) {
 		return nil, false
 	}), nil
 }
 
-func handlerWithIndexHTML(indexHTML []byte, pathPrefix string, getHandler func(path string) (http.Handler, bool)) http.Handler {
-	filesHandler := swaggerFiles.Handler
-	filesHandler.Prefix = pathPrefix
-
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func handlerWithIndexHTML(indexHTML []byte, prefix string, getHandler func(path string) (http.Handler, bool)) http.Handler {
+	return http.StripPrefix(prefix, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
 
 		path := r.URL.Path
-		if pathPrefix != "" {
-			path = strings.TrimPrefix(path, pathPrefix)
-			if len(path) == len(r.URL.Path) {
-				w.WriteHeader(http.StatusNotFound)
-				return
-			}
-		}
 
 		if path == "/" || path == "/index.html" {
 			w.Write(indexHTML)
@@ -102,13 +91,12 @@ func handlerWithIndexHTML(indexHTML []byte, pathPrefix string, getHandler func(p
 		}
 
 		if handler, ok := getHandler(path); ok {
-			r.URL.Path = path
 			handler.ServeHTTP(w, r)
 			return
 		}
 
-		filesHandler.ServeHTTP(w, r)
-	})
+		swaggerFiles.Handler.ServeHTTP(w, r)
+	}))
 }
 
 var noCacheHeaders = map[string]string{
