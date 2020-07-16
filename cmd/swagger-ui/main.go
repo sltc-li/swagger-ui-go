@@ -1,18 +1,13 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
-
-	"github.com/ghodss/yaml"
 
 	"github.com/li-go/swagger-ui-go"
 )
@@ -36,9 +31,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	handler, err := swagger_ui.New(func() ([]byte, error) {
-		return readSchemaAsJSON(flag.Arg(0))
-	}, "")
+	handler, err := getHandler(flag.Arg(0), "")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -50,40 +43,10 @@ func main() {
 	}
 }
 
-func readSchemaAsJSON(path string) ([]byte, error) {
+func getHandler(path string, prefix string) (http.Handler, error) {
 	if strings.HasPrefix(path, "http://") || strings.HasPrefix(path, "https://") {
-		resp, err := http.Get(path)
-		if err != nil {
-			return nil, fmt.Errorf("get remote file: %w", err)
-		}
-		defer resp.Body.Close()
-		return readJSON(resp.Body)
+		return swagger_ui.NewWithURL(path, prefix)
 	}
 
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, fmt.Errorf("open file: %w", err)
-	}
-
-	return readJSON(file)
-}
-
-func readJSON(reader io.Reader) ([]byte, error) {
-	buf, err := ioutil.ReadAll(reader)
-	if err != nil {
-		return nil, fmt.Errorf("read content: %w", err)
-	}
-
-	var v interface{}
-	// valid json
-	if err := json.Unmarshal(buf, &v); err == nil {
-		return buf, nil
-	}
-
-	// valid yaml
-	if buf, err := yaml.YAMLToJSON(buf); err == nil {
-		return buf, nil
-	}
-
-	return nil, fmt.Errorf("unsupported media type")
+	return swagger_ui.NewWithPath(path, prefix)
 }
