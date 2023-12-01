@@ -7,12 +7,15 @@ swagger-ui-go provides a Go http handler for hosting [Swagger UI](https://swagge
 
 #### As a go package
 ```shell script
-go get -u github.com/li-go/swagger-ui-go
+go install github.com/sltc-li/swagger-ui-go/cmd/swagger-ui@latest
+```
+
+```go
 ```
 
 #### As a command line tool
 ```shell script
-go get -u github.com/li-go/swagger-ui-go/cmd/swagger-ui
+go install github.com/sltc-li/swagger-ui-go/cmd/swagger-ui@latest
 # parse a local schema file in YAML
 swagger-ui ./openapi.yaml
 # parse a local schema file in JSON

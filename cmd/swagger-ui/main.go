@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/li-go/swagger-ui-go"
+	swagger_ui "github.com/sltc-li/swagger-ui-go"
 )
 
 const usage = `Usage:
