@@ -7,10 +7,7 @@ swagger-ui-go provides a Go http handler for hosting [Swagger UI](https://swagge
 
 #### As a go package
 ```shell script
-go install github.com/sltc-li/swagger-ui-go/cmd/swagger-ui@latest
-```
-
-```go
+go get -u github.com/sltc-li/swagger-ui-go
 ```
 
 #### As a command line tool
